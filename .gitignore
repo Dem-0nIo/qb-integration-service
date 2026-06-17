@@ -5,3 +5,8 @@ target/
 .DS_Store
 *.log
 HELP.md
+*.sql
+*.dump
+*.csv
+/data/
+/exports/

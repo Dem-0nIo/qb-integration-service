@@ -92,8 +92,8 @@ public class QBWebConnectorServiceImpl implements QBWebConnectorService {
                     .findTopByEntityTypeAndStatusOrderByCompletedAtDesc("CUSTOMER", "SUCCESS");
 
             String fromModifiedDate = lastSync
-                    .map(s -> s.getCompletedAt().toLocalDate().toString())
-                    .orElse("1900-01-01");
+                    .map(s -> s.getCompletedAt().toLocalDate().toString() + "T00:00:00")
+                    .orElse("1970-01-01T00:00:00");
 
             log.info("Customer sync from date: {}", fromModifiedDate);
 
@@ -104,6 +104,7 @@ public class QBWebConnectorServiceImpl implements QBWebConnectorService {
                     "<CustomerQueryRq requestID=\"1\">" +
                     "<MaxReturned>100</MaxReturned>" +
                     "<ActiveStatus>ActiveOnly</ActiveStatus>" +
+                    "<FromModifiedDate>" + fromModifiedDate + "</FromModifiedDate>" +
                     "</CustomerQueryRq>" +
                     "</QBXMLMsgsRq>" +
                     "</QBXML>";
@@ -121,8 +122,8 @@ public class QBWebConnectorServiceImpl implements QBWebConnectorService {
                     .findTopByEntityTypeAndStatusOrderByCompletedAtDesc("INVOICE", "SUCCESS");
 
             String fromModifiedDate = lastSync
-                    .map(s -> s.getCompletedAt().toLocalDate().toString())
-                    .orElse("1900-01-01");
+                    .map(s -> s.getCompletedAt().toLocalDate().toString() + "T00:00:00")
+                    .orElse("1970-01-01T00:00:00");
 
             log.info("Invoice sync from date: {}", fromModifiedDate);
 
@@ -132,6 +133,9 @@ public class QBWebConnectorServiceImpl implements QBWebConnectorService {
                     "<QBXMLMsgsRq onError=\"stopOnError\">" +
                     "<InvoiceQueryRq requestID=\"1\">" +
                     "<MaxReturned>100</MaxReturned>" +
+                    "<ModifiedDateRangeFilter>" +
+                    "<FromModifiedDate>" + fromModifiedDate + "</FromModifiedDate>" +
+                    "</ModifiedDateRangeFilter>" +
                     "<IncludeLineItems>true</IncludeLineItems>" +
                     "</InvoiceQueryRq>" +
                     "</QBXMLMsgsRq>" +
