@@ -102,7 +102,7 @@ public class QBWebConnectorServiceImpl implements QBWebConnectorService {
                     "<QBXML>" +
                     "<QBXMLMsgsRq onError=\"stopOnError\">" +
                     "<CustomerQueryRq requestID=\"1\">" +
-                    "<MaxReturned>100</MaxReturned>" +
+                    "<MaxReturned>600</MaxReturned>" +
                     "<ActiveStatus>ActiveOnly</ActiveStatus>" +
                     "<FromModifiedDate>" + fromModifiedDate + "</FromModifiedDate>" +
                     "</CustomerQueryRq>" +
@@ -132,7 +132,7 @@ public class QBWebConnectorServiceImpl implements QBWebConnectorService {
                     "<QBXML>" +
                     "<QBXMLMsgsRq onError=\"stopOnError\">" +
                     "<InvoiceQueryRq requestID=\"1\">" +
-                    "<MaxReturned>100</MaxReturned>" +
+                    "<MaxReturned>600</MaxReturned>" +
                     "<ModifiedDateRangeFilter>" +
                     "<FromModifiedDate>" + fromModifiedDate + "</FromModifiedDate>" +
                     "</ModifiedDateRangeFilter>" +
