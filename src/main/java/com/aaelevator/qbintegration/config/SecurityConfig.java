@@ -1,5 +1,6 @@
 package com.aaelevator.qbintegration.config;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -14,6 +15,9 @@ import org.springframework.security.web.SecurityFilterChain;
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
+
+    @Autowired
+    private JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -48,6 +52,7 @@ public class SecurityConfig {
         http
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/services/**").permitAll()
+                        .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/accounting/**").hasRole("ACCOUNTING")
                         .requestMatchers("/api/client/**").hasRole("CLIENT")
@@ -55,6 +60,9 @@ public class SecurityConfig {
                 )
                 .httpBasic(basic -> {})
                 .csrf(csrf -> csrf.disable());
+
+        http.addFilterBefore(jwtAuthenticationFilter,
+                org.springframework.security.web.authentication.www.BasicAuthenticationFilter.class);
 
         return http.build();
     }
