@@ -2,7 +2,11 @@ package com.aaelevator.qbintegration.controller;
 
 import com.aaelevator.qbintegration.dto.ConsolidatedViewDTO;
 import com.aaelevator.qbintegration.service.ConsolidatedViewService;
+import com.aaelevator.qbintegration.service.JwtService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -18,10 +22,31 @@ public class ClientPortalController {
     @Autowired
     private ConsolidatedViewService consolidatedViewService;
 
+    @Autowired
+    private JwtService jwtService;
+
     @GetMapping("/consolidated-view")
-    public List<ConsolidatedViewDTO> getConsolidatedView(
+    /*public List<ConsolidatedViewDTO> getConsolidatedView(
             @RequestParam String qbEmpresa,
             @RequestParam(defaultValue = "12") int months) {
         return consolidatedViewService.getMaintenanceView(qbEmpresa, months);
+    }*/
+    public ResponseEntity<List<ConsolidatedViewDTO>> getConsolidatedView(@RequestParam (defaultValue = "12") int months, HttpServletRequest request) {
+
+        // Extraer qbEmpresa del JWT
+        String authHeader = request.getHeader("Authorization");
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        String token = authHeader.substring("Bearer ".length()); // 7
+        String qbEmpresa = jwtService.extractQbEmpresa(token);
+
+        if (qbEmpresa == null || qbEmpresa.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
+        List<ConsolidatedViewDTO> result = consolidatedViewService.getMaintenanceView(qbEmpresa, months);
+        return ResponseEntity.ok(result);
     }
 }

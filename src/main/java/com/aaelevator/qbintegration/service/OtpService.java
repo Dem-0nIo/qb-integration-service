@@ -6,10 +6,12 @@ import com.aaelevator.qbintegration.repository.OtpTokenRepository;
 import com.twilio.Twilio;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
@@ -19,6 +21,9 @@ import java.util.Optional;
 public class OtpService {
 
     private static final Logger log = LoggerFactory.getLogger(OtpService.class);
+
+    @Autowired
+    private OtpTokenService otpTokenService;
 
     private final OtpTokenRepository otpTokenRepository;
     private final CustomerRepository customerRepository;
@@ -50,13 +55,14 @@ public class OtpService {
                 Twilio.init(twilioAccountSid, twilioAuthToken);
             }
 
-    @Transactional
     public void requestOtp(String email, String channel) {
 
         //1. Verificar que el email existe en QB
+        log.info("Checking email existence for: '{}'", email);
         boolean emailExists = customerRepository.existsByEmail(email);
+        log.info("Email exists: {}", emailExists);
 
-        if (emailExists) {
+        if (!emailExists) {
             //por seguridad responde igual aunque no exista
             log.warn("OTP requested for unknown email : {}", email);
             return;
@@ -75,13 +81,7 @@ public class OtpService {
         } else {
             // 3b. Generar OTP y enviar por email
             String otpCode = generateOtpCode();
-
-            OtpToken token = new OtpToken();
-            token.setEmail(email);
-            token.setOtpCode(otpCode);
-            token.setExpiresAt(LocalDateTime.now().plusMinutes(10));
-            token.setUsed(false);
-            otpTokenRepository.save(token);
+            otpTokenService.saveOtpToken(email, otpCode);
 
             sendOtpEmail(email, otpCode);
             log.info("OTP sent by email to: {}", email);
@@ -116,6 +116,8 @@ public class OtpService {
         log.info("OTP verified successfully for email: {}", email);
         return Optional.of(jwt);
     }
+
+
 
     private String generateOtpCode() {
         int code = (int) (Math.random() * 900000) + 100000;
