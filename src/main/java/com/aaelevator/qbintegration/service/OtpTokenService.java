@@ -27,4 +27,9 @@ public class OtpTokenService {
         token.setUsed(false);
         otpTokenRepository.save(token);
     }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void deleteUsedTokens(String email) {
+        otpTokenRepository.deleteByEmailAndUsedTrue(email);
+    }
 }

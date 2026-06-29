@@ -55,11 +55,12 @@ public class OtpService {
                 Twilio.init(twilioAccountSid, twilioAuthToken);
             }
 
+
     public void requestOtp(String email, String channel) {
 
         //1. Verificar que el email existe en QB
         log.info("Checking email existence for: '{}'", email);
-        boolean emailExists = customerRepository.existsByEmail(email);
+        boolean emailExists = customerRepository.existsByEmailAndIsActiveTrue(email);
         log.info("Email exists: {}", emailExists);
 
         if (!emailExists) {
@@ -67,9 +68,6 @@ public class OtpService {
             log.warn("OTP requested for unknown email : {}", email);
             return;
         }
-
-        //2. Limpiar OTPs usados
-        otpTokenRepository.deleteByEmailAndUsedTrue(email);
 
         if ("sms".equalsIgnoreCase(channel) || "whatsapp".equalsIgnoreCase(channel)) {
             //3. Delegar a Twilio Verify para SMS/WhatsApp
@@ -108,7 +106,7 @@ public class OtpService {
         otpTokenRepository.save(token);
 
         // Buscar la empresa QB asociada al email
-        String qbEmpresa = customerRepository.findFirstByEmail(email)
+        String qbEmpresa = customerRepository.findFirstByEmailAndIsActiveTrue(email)
                             .map(c -> c.getCompanyName() != null && !c.getCompanyName().isEmpty()
                                     ? c.getCompanyName() : c.getFullName().split(":")[0].trim()).orElse(email);
 
