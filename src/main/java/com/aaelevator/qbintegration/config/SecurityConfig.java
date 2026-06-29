@@ -21,7 +21,7 @@ public class SecurityConfig {
     @Autowired
     private JwtAuthenticationFilter jwtAuthenticationFilter;
 
-    @Bean
+    /*@Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
@@ -47,7 +47,7 @@ public class SecurityConfig {
                 .build();
 
         return new InMemoryUserDetailsManager(admin, accounting, client);
-    }
+    }*/
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -63,6 +63,14 @@ public class SecurityConfig {
                         .requestMatchers("/api/accounting/**").hasRole("ACCOUNTING")
                         .requestMatchers("/api/client/**").hasRole("CLIENT")
                         .anyRequest().authenticated()
+                )
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint((request, response, authException) -> {
+                            response.sendError(jakarta.servlet.http.HttpServletResponse.SC_NOT_FOUND);
+                        })
+                        .accessDeniedHandler((request, response, accessDeniedException) -> {
+                            response.sendError(jakarta.servlet.http.HttpServletResponse.SC_FORBIDDEN);
+                        })
                 )
                 .addFilterBefore(jwtAuthenticationFilter,
                         UsernamePasswordAuthenticationFilter.class);
