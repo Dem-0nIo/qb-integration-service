@@ -1,5 +1,6 @@
 package com.aaelevator.qbintegration.config;
 
+import com.aaelevator.qbintegration.service.AuditService;
 import com.aaelevator.qbintegration.service.JwtService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
@@ -20,9 +21,12 @@ import java.util.List;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
+    private final AuditService auditService;
 
-    public JwtAuthenticationFilter(JwtService jwtService) {
+    public JwtAuthenticationFilter(JwtService jwtService, AuditService auditService) {
+
         this.jwtService = jwtService;
+        this.auditService = auditService;
     }
 
     @Override
@@ -46,8 +50,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                                                     List.of( new SimpleGrantedAuthority("ROLE_CLIENT")));
 
                 SecurityContextHolder.getContext().setAuthentication(authentication);
+                // Registrar acceso a endpoint protegido
+                auditService.log("DATA_ACCESS", email, request, null);
             } catch (JwtException e) {
                 logger.warn("Invalid JWT Token: "  + e.getMessage());
+                auditService.log("JWT_INVALID", null, request, e.getMessage());
+
             }
 
             filterChain.doFilter(request, response);
