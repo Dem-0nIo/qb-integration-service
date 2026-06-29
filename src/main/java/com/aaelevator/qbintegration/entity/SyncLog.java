@@ -29,6 +29,9 @@ public class SyncLog {
     @Column(name = "error_message", length = 1000)
     private String errorMessage;
 
+    @Column(name = "cursor_date")
+    private java.time.LocalDate cursorDate;
+
     //Getters y setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -50,5 +53,8 @@ public class SyncLog {
 
     public String getErrorMessage() { return errorMessage; }
     public void setErrorMessage(String errorMessage) { this.errorMessage = errorMessage; }
+
+    public java.time.LocalDate getCursorDate() { return cursorDate; }
+    public void setCursorDate(java.time.LocalDate cursorDate) { this.cursorDate = cursorDate; }
 
 }

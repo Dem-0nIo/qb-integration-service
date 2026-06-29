@@ -16,7 +16,7 @@ public class InvoiceLine {
     @JoinColumn(name = "invoice_txn_id", nullable = false)
     private Invoice invoice;
 
-    @Column(name = "description", length = 500)
+    @Column(name = "description", length = 4000)
     private String description;
 
     @Column(name = "quantity", precision = 10, scale = 2)

@@ -8,10 +8,15 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface InvoiceRepository extends JpaRepository<Invoice, String> {
 
+    @Query("SELECT MAX(i.txnDate) FROM Invoice i")
+    Optional<LocalDate> findMaxTxnDate();
 
+    @Query("SELECT MAX(i.txnDate) FROM Invoice i WHERE i.txnDate < :cutoff")
+    Optional<java.time.LocalDate> findMaxTxnDateBefore(@Param("cutoff") java.time.LocalDate cutoff);
 
 }

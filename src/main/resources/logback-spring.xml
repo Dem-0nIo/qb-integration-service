@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <!-- Appender normal de consola (IntelliJ) -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{HH:mm:ss} %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- Appender exclusivo para XML de QB — archivo limpio -->
+    <appender name="QB_XML_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>logs/qb-xml.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>logs/qb-xml.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>7</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{HH:mm:ss} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- Logger dedicado — solo va al archivo, no a consola -->
+    <logger name="QB_XML_LOGGER" level="DEBUG" additivity="false">
+        <appender-ref ref="QB_XML_FILE"/>
+    </logger>
+
+    <!-- Root normal -->
+    <root level="INFO">
+        <appender-ref ref="CONSOLE"/>
+    </root>
+
+</configuration>

@@ -35,7 +35,11 @@ public class SyncLogService {
     @Transactional
     public int markStaleAsAbandoned(int hoursThreshold) {
         LocalDateTime cutoff = LocalDateTime.now().minusHours(hoursThreshold);
-        List<SyncLog> staleLogs = syncLogRepository.findByStatusAndStartedAtBefore("IN_PROGRESS", cutoff);
+        List<SyncLog> staleLogs = syncLogRepository
+                .findByStatusAndStartedAtBefore("IN_PROGRESS", cutoff)
+                .stream()
+                .filter(sl -> !sl.getEntityType().equals("INVOICE_HISTORICAL"))
+                .collect(java.util.stream.Collectors.toList());
 
         for (SyncLog log : staleLogs) {
             log.setStatus("ABANDONED");
