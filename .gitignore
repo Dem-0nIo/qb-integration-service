@@ -10,3 +10,11 @@ HELP.md
 *.csv
 /data/
 /exports/
+
+# Variables de entorno — nunca subir al repo
+.env
+.env.production
+.env.local
+
+# El .env.development ya existe con ese nombre — agregarlo explícitamente
+.env.development
