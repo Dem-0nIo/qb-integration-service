@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -41,6 +42,9 @@ public class ClientPortalController {
 
         String token = authHeader.substring("Bearer ".length()); // 7
         String qbEmpresa = jwtService.extractQbEmpresa(token);
+        /*String qbEmpresa = (String) SecurityContextHolder.getContext()
+                .getAuthentication()
+                .getPrincipal();*/
 
         if (qbEmpresa == null || qbEmpresa.isEmpty()) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();

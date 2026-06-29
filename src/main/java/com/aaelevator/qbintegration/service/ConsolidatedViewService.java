@@ -7,6 +7,8 @@ import com.aaelevator.qbintegration.entity.CustomerMapping;
 import com.aaelevator.qbintegration.entity.Invoice;
 import com.aaelevator.qbintegration.repository.CustomerMappingRepository;
 import com.aaelevator.qbintegration.repository.InvoiceRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -19,6 +21,8 @@ import java.util.stream.Collectors;
 
 @Service
 public class ConsolidatedViewService {
+
+    private static final Logger log = LoggerFactory.getLogger(ConsolidatedViewService.class);
 
     @Autowired
     private CustomerMappingRepository customerMappingRepository;
@@ -33,8 +37,14 @@ public class ConsolidatedViewService {
 
     public List<ConsolidatedViewDTO> getMaintenanceView(String qbEmpresa, int months){
 
+
+        log.info("getMaintenanceView - qbEmpresa: '{}', length: {}, months: {}",
+                qbEmpresa, qbEmpresa != null ? qbEmpresa.length() : "null", months);
+        log.info("qbEmpresa length: {}", qbEmpresa != null ? qbEmpresa.length() : "null");
+
         // 1. Obtener todos los ticket_customer_id mapeados para esta empresa
         List<CustomerMapping> mappings = customerMappingRepository.findByQbEmpresa(qbEmpresa);
+        log.info("Mappings found: {}", mappings != null ? mappings.size() : "null");
         if(mappings == null || mappings.isEmpty()){
             return Collections.emptyList();
         }
