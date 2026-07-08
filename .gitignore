@@ -17,4 +17,13 @@ HELP.md
 .env.local
 
 # El .env.development ya existe con ese nombre — agregarlo explícitamente
-.env.development
+.env.developmenttokens.json
+**/loadtest/tokens.json
+
+# Endpoint temporal de dev (no debe ir a producción)
+**/controller/DevTokenController.java
+
+# Tokens generados localmente (regenerables, no versionar)
+tokens.json
+**/loadtest/tokens.json
+loadtest/clientes-reales.txt

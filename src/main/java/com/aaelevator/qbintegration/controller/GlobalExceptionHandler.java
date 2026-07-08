@@ -2,6 +2,7 @@ package com.aaelevator.qbintegration.controller;
 
 import com.aaelevator.qbintegration.service.AuditService;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.ConstraintViolationException;
 import org.eclipse.angus.mail.iap.ConnectionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import java.time.LocalDateTime;
 import java.util.Map;
@@ -81,6 +83,66 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(Map.of(
                 "error", "Service temporarily unavailable",
                 "detail", "A required service is unreachable. Please try again shortly", "timestamp", LocalDateTime.now().toString()
+        ));
+    }
+
+    /**
+     * Parámetro de la URL con tipo incorrecto (ej. months=abc en vez de un entero).
+     * Es un error de entrada del cliente (400), no una falla del servidor (500).
+     * Sin este handler, MethodArgumentTypeMismatchException caía en el fallback
+     * genérico de abajo y se reportaba incorrectamente como 500.
+     */
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<Map<String, Object>> handleTypeMismatch(
+            MethodArgumentTypeMismatchException ex, HttpServletRequest request) {
+
+        log.warn("Invalid parameter type on [{}]: {} = '{}'", request.getRequestURI(), ex.getName(), ex.getValue());
+        auditService.log("BAD_REQUEST", extractEmail(request), request,
+                "Invalid value for parameter '" + ex.getName() + "'");
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of(
+                "error", "Bad request",
+                "detail", "Invalid value for parameter '" + ex.getName() + "'.",
+                "timestamp", LocalDateTime.now().toString()
+        ));
+    }
+    /**
+     * Violación de restricciones de validación (@Min, @Max, etc.) aplicadas
+     * directamente sobre @RequestParam en un controlador anotado con @Validated.
+     * Ej: months=999999999 excediendo el límite superior configurado.
+     *
+     * NOTA: en Spring Framework 6.1+ (usado por Spring Boot 4.0.5), la
+     * validación nativa de parámetros de método lanza HandlerMethodValidationException,
+     * no jakarta.validation.ConstraintViolationException directamente. Se
+     * mantienen ambos handlers por robustez ante configuraciones distintas.
+     */
+    @ExceptionHandler(org.springframework.web.method.annotation.HandlerMethodValidationException.class)
+    public ResponseEntity<Map<String, Object>> handleMethodValidation(
+            org.springframework.web.method.annotation.HandlerMethodValidationException ex, HttpServletRequest request) {
+
+        log.warn("Validation failed on [{}]: {}", request.getRequestURI(), ex.getMessage());
+        auditService.log("BAD_REQUEST", extractEmail(request), request,
+                "Validation failed: " + ex.getMessage());
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of(
+                "error", "Bad request",
+                "detail", "Invalid request parameters.",
+                "timestamp", LocalDateTime.now().toString()
+        ));
+    }
+
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<Map<String, Object>> handleConstraintViolation(
+            ConstraintViolationException ex, HttpServletRequest request) {
+
+        log.warn("Validation failed on [{}]: {}", request.getRequestURI(), ex.getMessage());
+        auditService.log("BAD_REQUEST", extractEmail(request), request,
+                "Validation failed: " + ex.getMessage());
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of(
+                "error", "Bad request",
+                "detail", "Invalid request parameters.",
+                "timestamp", LocalDateTime.now().toString()
         ));
     }
 

@@ -4,6 +4,8 @@ import com.aaelevator.qbintegration.dto.ConsolidatedViewDTO;
 import com.aaelevator.qbintegration.service.ConsolidatedViewService;
 import com.aaelevator.qbintegration.service.JwtService;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -32,7 +34,7 @@ public class ClientPortalController {
             @RequestParam(defaultValue = "12") int months) {
         return consolidatedViewService.getMaintenanceView(qbEmpresa, months);
     }*/
-    public ResponseEntity<List<ConsolidatedViewDTO>> getConsolidatedView(@RequestParam (defaultValue = "12") int months, HttpServletRequest request) {
+    public ResponseEntity<List<ConsolidatedViewDTO>> getConsolidatedView(@RequestParam (defaultValue = "12") @Min(1) @Max(120) int months, HttpServletRequest request) {
 
         // Extraer qbEmpresa del JWT
         String authHeader = request.getHeader("Authorization");
