@@ -1,0 +1,46 @@
+name: Deploy microservicio
+
+on:
+  push:
+    branches: [master]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 25
+        uses: actions/setup-java@v4
+        with:
+          java-version: '25'
+          distribution: 'temurin'
+
+      - name: Run tests
+        run: mvn test -Dtest='!QbIntegrationServiceApplicationTests' -B
+
+      - name: Check dev-only endpoints removed
+        run: |
+          if find src/main/java -name "DevTokenController.java" | grep -q .; then
+            echo "::error::DevTokenController presente — no se puede desplegar a producción"
+            exit 1
+          fi
+          if grep -rn "api/dev" src/main/java/com/aaelevator/qbintegration/config/SecurityConfig.java 2>/dev/null; then
+            echo "::error::Referencia a /api/dev/** aún presente en SecurityConfig"
+            exit 1
+          fi
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.LIGHTSAIL_HOST }}
+          username: ${{ secrets.LIGHTSAIL_USER }}
+          key: ${{ secrets.LIGHTSAIL_SSH_KEY }}
+          script: |
+            cd ~/projects/qb-integration-service
+            git pull origin master
+            cd ~/projects
+            docker compose build microservicio
+            docker compose up -d microservicio
+            sleep 15
+            docker compose ps microservicio | grep -q "Up" && echo "Deploy exitoso" || (echo "Deploy falló" && exit 1)
