@@ -3,7 +3,6 @@ package com.aaelevator.qbintegration.service;
 import com.aaelevator.qbintegration.entity.OtpToken;
 import com.aaelevator.qbintegration.repository.CustomerRepository;
 import com.aaelevator.qbintegration.repository.OtpTokenRepository;
-import com.twilio.Twilio;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,7 +10,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
@@ -29,10 +27,6 @@ public class OtpService {
     private final CustomerRepository customerRepository;
     private final JwtService jwtService;
     private final JavaMailSender mailSender;
-
-    private final String twilioAccountSid;
-    private final String twilioAuthToken;
-    private final String twilioVerifyServiceSid;
     private final String mailFrom;
 
     public OtpService(
@@ -40,19 +34,12 @@ public class OtpService {
             CustomerRepository customerRepository,
             JwtService jwtService,
             JavaMailSender mailSender,
-            @Value("${twilio.account.sid}") String twilioAccountSid,
-            @Value("${twilio.auth.token}") String twilioAuthToken,
-            @Value("${twilio.verify.service.sid") String twilioVerifyServiceSid,
             @Value("${spring.mail.username") String mailFrom) {
                 this.otpTokenRepository = otpTokenRepository;
                 this.customerRepository = customerRepository;
                 this.jwtService = jwtService;
                 this.mailSender = mailSender;
-                this.twilioAccountSid = twilioAccountSid;
-                this.twilioAuthToken = twilioAuthToken;
-                this.twilioVerifyServiceSid = twilioVerifyServiceSid;
                 this.mailFrom = mailFrom;
-                Twilio.init(twilioAccountSid, twilioAuthToken);
             }
 
 
@@ -70,12 +57,8 @@ public class OtpService {
         }
 
         if ("sms".equalsIgnoreCase(channel) || "whatsapp".equalsIgnoreCase(channel)) {
-            //3. Delegar a Twilio Verify para SMS/WhatsApp
+
             String to = channel.equalsIgnoreCase("whatsapp") ? "whatsapp:+" : "+";
-            log.info("OTP via Twilio Verify requested for email : {}", email);
-            // *****Nota: Twilio Verify maneja internamente el OTP - no se guarda en DB del sistema
-            // Para SMS/WhatsApp se usa el número de teléfono del cliente, no el email
-            // Esta rama se activará cuando agregue el teléfono del cliente
         } else {
             // 3b. Generar OTP y enviar por email
             String otpCode = generateOtpCode();
