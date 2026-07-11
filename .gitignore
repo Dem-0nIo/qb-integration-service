@@ -27,3 +27,4 @@ HELP.md
 tokens.json
 **/loadtest/tokens.json
 loadtest/clientes-reales.txt
+src/main/resources/application-dev.properties
