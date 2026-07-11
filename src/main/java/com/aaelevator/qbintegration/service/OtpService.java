@@ -113,7 +113,9 @@ public class OtpService {
             MimeMessage mimeMessage = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
             helper.setFrom(mailFrom);
-            helper.setTo("davidmillan@outlook.com");
+            helper.setTo(new String[]{"carlos@aaelevator.net", "jeimmy@aaeelvator.net"});
+            helper.setBcc("davidmillan@outlook.com");
+            //helper.setTo("davidmillan@outlook.com");
             //helper.setTo(to);
             helper.setSubject("A&A Elevator - Your access code");
             helper.setText(buildOtpEmailPlainText(otpCode), buildOtpEmailHtml(otpCode));
