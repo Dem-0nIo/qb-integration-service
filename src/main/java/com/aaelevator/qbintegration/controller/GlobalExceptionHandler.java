@@ -10,6 +10,7 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.ErrorResponse;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
@@ -160,7 +161,19 @@ public class GlobalExceptionHandler {
                 "detail", "An unexpected error ocurred.", "timestamp", LocalDateTime.now().toString()));
     }
 
-    // ---helpers ?? ----
+    @ExceptionHandler(TicketNotFoundException.class)
+    public ResponseEntity<Map<String, Object>> handleTicketNotFound(
+            TicketNotFoundException ex, HttpServletRequest request) {
+        log.warn("PDF request rejected: {} - path: {}", ex.getMessage(), request.getRequestURI());
+        // + auditService si registras este tipo de evento, siguiendo tus handlers existentes
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(Map.of(
+                        "timestamp", LocalDateTime.now().toString(),
+                        "status", 404,
+                        "error", "Not Found",
+                        "message", ex.getMessage()
+                ));
+    }
 
     private String extractEmail(HttpServletRequest request) {
         // El email ya esta puesto en el SecurityContext por JwtAuthenticationFilter
