@@ -2,6 +2,7 @@ package com.aaelevator.qbintegration.service;
 
 import com.aaelevator.qbintegration.repository.CustomerMappingRepository;
 
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -13,7 +14,7 @@ public class TicketAuthorizationService {
     private final JdbcTemplate wordpressJdbcTemplate;
 
     public TicketAuthorizationService(CustomerMappingRepository customerMappingRepository,
-                                      JdbcTemplate wordpressJdbcTemplate) {
+                                      @Qualifier("wordPressJdbcTemplate") JdbcTemplate wordpressJdbcTemplate) {
         this.customerMappingRepository = customerMappingRepository;
         this.wordpressJdbcTemplate = wordpressJdbcTemplate;
     }
