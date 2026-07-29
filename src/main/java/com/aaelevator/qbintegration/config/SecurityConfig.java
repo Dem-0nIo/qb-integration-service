@@ -21,34 +21,6 @@ public class SecurityConfig {
     @Autowired
     private JwtAuthenticationFilter jwtAuthenticationFilter;
 
-    /*@Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
-
-    @Bean
-    public UserDetailsService userDetailsService(PasswordEncoder encoder) {
-        var admin = User.builder()
-                .username("admin")
-                .password(encoder.encode("admin123"))
-                .roles("ADMIN")
-                .build();
-
-        var accounting = User.builder()
-                .username("accounting")
-                .password(encoder.encode("accounting123"))
-                .roles("ACCOUNTING")
-                .build();
-
-        var client = User.builder()
-                .username("client")
-                .password(encoder.encode("client123"))
-                .roles("CLIENT")
-                .build();
-
-        return new InMemoryUserDetailsManager(admin, accounting, client);
-    }*/
-
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
