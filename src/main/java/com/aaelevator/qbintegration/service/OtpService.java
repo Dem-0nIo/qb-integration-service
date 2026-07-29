@@ -1,5 +1,6 @@
 package com.aaelevator.qbintegration.service;
 
+import com.aaelevator.qbintegration.entity.Customer;
 import com.aaelevator.qbintegration.entity.OtpToken;
 import com.aaelevator.qbintegration.repository.CustomerRepository;
 import com.aaelevator.qbintegration.repository.OtpTokenRepository;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.Optional;
 
 @Service
@@ -37,19 +39,21 @@ public class OtpService {
             JwtService jwtService,
             JavaMailSender mailSender,
             @Value("${spring.mail.username}") String mailFrom) {
-                this.otpTokenRepository = otpTokenRepository;
-                this.customerRepository = customerRepository;
-                this.jwtService = jwtService;
-                this.mailSender = mailSender;
-                this.mailFrom = mailFrom;
-            }
+        this.otpTokenRepository = otpTokenRepository;
+        this.customerRepository = customerRepository;
+        this.jwtService = jwtService;
+        this.mailSender = mailSender;
+        this.mailFrom = mailFrom;
+    }
 
 
     public void requestOtp(String email, String channel) {
 
-        //1. Verificar que el email existe en QB
+        // Verificar que el email existe en QB (soporta el campo email
+        // multi-valor separado por ';' que exporta QuickBooks, ej.
+        // "andorplaza@gmail.com; adiaz@pmasflorida.com")
         log.info("Checking email existence for: '{}'", email);
-        boolean emailExists = customerRepository.existsByEmailAndIsActiveTrue(email);
+        boolean emailExists = findActiveCustomerByEmail(email).isPresent();
         log.info("Email exists: {}", emailExists);
 
         if (!emailExists) {
@@ -62,7 +66,7 @@ public class OtpService {
 
             String to = channel.equalsIgnoreCase("whatsapp") ? "whatsapp:+" : "+";
         } else {
-            // 3b. Generar OTP y enviar por email
+            // Generar OTP y enviar por email
             String otpCode = generateOtpCode();
             otpTokenService.saveOtpToken(email, otpCode);
 
@@ -90,17 +94,42 @@ public class OtpService {
         token.setUsed(true);
         otpTokenRepository.save(token);
 
-        // Buscar la empresa QB asociada al email
-        String qbEmpresa = customerRepository.findFirstByEmailAndIsActiveTrue(email)
-                            .map(c -> c.getCompanyName() != null && !c.getCompanyName().isEmpty()
-                                    ? c.getCompanyName() : c.getFullName().split(":")[0].trim()).orElse(email);
+        // Buscar la empresa QB asociada al email (mismo soporte multi-valor)
+        String qbEmpresa = findActiveCustomerByEmail(email)
+                .map(c -> c.getCompanyName() != null && !c.getCompanyName().isEmpty()
+                        ? c.getCompanyName() : c.getFullName().split(":")[0].trim()).orElse(email);
 
         String jwt = jwtService.generateToken(email, qbEmpresa);
         log.info("OTP verified successfully for email: {}", email);
         return Optional.of(jwt);
     }
 
+    /**
+     * Busca un cliente activo cuyo campo email coincida con el email dado.
+     *
+     * El campo customers.email puede contener múltiples direcciones separadas
+     * por ';' (tal como QuickBooks las exporta cuando un cliente tiene varios
+     * contactos, ej. "andorplaza@gmail.com; adiaz@pmasflorida.com"). Una
+     * comparación de igualdad exacta (customerRepository.existsByEmailAndIsActiveTrue)
+     * nunca hace match en esos casos, bloqueando el login de esos clientes
+     * aunque estén activos y el email sea correcto. Este método separa el
+     * campo por ';', normaliza cada dirección (trim + lowercase) y compara
+     * contra cada una individualmente.
+     */
+    private Optional<Customer> findActiveCustomerByEmail(String email) {
+        if (email == null || email.isBlank()) {
+            return Optional.empty();
+        }
+        String target = email.trim().toLowerCase();
 
+        return customerRepository.findAllByIsActiveTrue().stream()
+                .filter(c -> c.getEmail() != null)
+                .filter(c -> Arrays.stream(c.getEmail().split(";"))
+                        .map(String::trim)
+                        .map(String::toLowerCase)
+                        .anyMatch(target::equals))
+                .findFirst();
+    }
 
     private String generateOtpCode() {
         int code = (int) (Math.random() * 900000) + 100000;
@@ -112,10 +141,11 @@ public class OtpService {
             MimeMessage mimeMessage = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
             helper.setFrom(mailFrom);
-            //helper.setTo(new String[]{"carlos@aaelevator.net", "jeimmy@aaeelvator.net"});
-            //helper.setBcc("davidmillan@outlook.com");
+            // Destinatario fijo a propósito mientras el sistema está en
+            // validación controlada con clientes reales — evita que cualquier
+            // error de envío llegue a un cliente fuera de control. Cambiar
+            // a helper.setTo(to) cuando se decida abrir el envío real.
             helper.setTo("davidmillan@outlook.com");
-            //helper.setTo(to);
             helper.setSubject("A&A Elevator - Your access code");
             helper.setText(buildOtpEmailPlainText(otpCode), buildOtpEmailHtml(otpCode));
             mailSender.send(mimeMessage);
