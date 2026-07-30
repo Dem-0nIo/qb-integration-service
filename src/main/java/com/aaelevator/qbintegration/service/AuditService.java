@@ -23,7 +23,7 @@ public class AuditService {
             AuditLog entry = new AuditLog();
             entry.setEventType(eventType);
             entry.setEmail(email);
-            entry.setIpAdress(extractIp(request));
+            entry.setIpAddress(extractIp(request));
             entry.setEndpoint(request != null ? request.getRequestURI() : null);
             entry.setDetails(details);
             auditLogRepository.save(entry);

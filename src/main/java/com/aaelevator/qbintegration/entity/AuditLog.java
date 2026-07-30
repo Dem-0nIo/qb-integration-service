@@ -19,8 +19,8 @@ public class AuditLog {
     @Column(length = 255)
     private String email;
 
-    @Column(name = "ip_Adress", length = 45)
-    private String ipAdress;
+    @Column(name = "ip_Address", length = 45)
+    private String ipAddress;
 
     @Column(length = 255)
     private String endpoint;
@@ -60,12 +60,12 @@ public class AuditLog {
         this.email = email;
     }
 
-    public String getIpAdress() {
-        return ipAdress;
+    public String getIpAddress() {
+        return ipAddress;
     }
 
-    public void setIpAdress(String ipAdress) {
-        this.ipAdress = ipAdress;
+    public void setIpAddress(String ipAddress) {
+        this.ipAddress = ipAddress;
     }
 
     public String getEndpoint() {
