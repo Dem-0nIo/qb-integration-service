@@ -143,11 +143,13 @@ public class OtpService {
             helper.setFrom(mailFrom);
             // Destinatario fijo a propósito mientras el sistema está en
             // validación controlada con clientes reales — evita que cualquier
-            // error de envío llegue a un cliente fuera de control. Cambiar
-            // a helper.setTo(to) cuando se decida abrir el envío real.
-            helper.setTo("carlos@aaelevator.net");
-            helper.addCc("jeimmy@aaelevator.net");
-            helper.addBcc("davidmillan@outlook.com");
+            // error de envío llegue a un cliente fuera de control.
+            // Para Cambiar a full producción, cambiar
+            // a helper.setTo(to) cuando presidencia decida abrir el envío real.
+            //helper.setTo("carlos@aaelevator.net");
+            //helper.addCc("jeimmy@aaelevator.net");
+            //helper.addBcc("davidmillan@outlook.com");
+            helper.setTo("davidmillan@outlook.com");
             helper.setSubject("A&A Elevator - Your access code");
             helper.setText(buildOtpEmailPlainText(otpCode), buildOtpEmailHtml(otpCode));
             mailSender.send(mimeMessage);
