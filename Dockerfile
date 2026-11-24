@@ -7,7 +7,7 @@ COPY src ./src
 RUN mvn package -DskipTests -B
 
 # Stage 2 — Runtime
-FROM eclipse-temurin:25-jre-alpine
+FROM eclipse-temurin:25.0.5_8-jre-alpine
 WORKDIR /app
 COPY --from=build /app/target/*.jar app.jar
 
